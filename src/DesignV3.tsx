@@ -22,11 +22,223 @@ import {
   Globe,
   Lock
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+// --- Constants ---
+const WHATSAPP_NUMBER = "593963803030"; // WhatsApp del usuario (Ecuador)
+
+const getWhatsAppLink = (message: string) => {
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+};
+
+// --- Presentation Component ---
+
+const SlideContent = ({ slide, isPrint = false }: { slide: any; isPrint?: boolean }) => (
+  <div className={`flex flex-col items-center text-center gap-8 ${isPrint ? 'p-10 h-screen justify-center' : ''}`}>
+    {!slide.messages && <div className={isPrint ? 'text-emerald-600' : ''}>{slide.icon}</div>}
+    <div className="space-y-4">
+      <h2 className={`font-display font-bold ${isPrint ? 'text-4xl text-black' : 'text-3xl sm:text-5xl text-white'}`}>
+        {slide.title}
+      </h2>
+      <p className="text-lg sm:text-xl text-emerald-500 font-medium italic">
+        {slide.subtitle}
+      </p>
+    </div>
+    
+    {slide.content && (
+      <p className={`text-base sm:text-lg leading-relaxed max-w-2xl ${isPrint ? 'text-zinc-700' : 'text-zinc-400'}`}>
+        {slide.content}
+      </p>
+    )}
+
+    {slide.points && (
+      <ul className="text-left space-y-3 max-w-xl">
+        {slide.points.map((point: string, i: number) => (
+          <li key={i} className={`flex items-start gap-4 text-base ${isPrint ? 'text-zinc-800' : 'text-zinc-300'}`}>
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-1" />
+            {point}
+          </li>
+        ))}
+      </ul>
+    )}
+
+    {slide.messages && (
+      <div className={`w-full max-w-2xl mx-auto space-y-3 p-6 rounded-[2rem] ${isPrint ? 'bg-zinc-100 border border-zinc-200' : 'bg-zinc-900/50 border border-white/5'}`}>
+        {slide.messages.map((msg: any, i: number) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[85%] p-4 rounded-2xl text-sm text-left whitespace-pre-line ${
+              msg.role === 'user' 
+                ? (isPrint ? 'bg-zinc-300 text-black' : 'bg-zinc-800 text-white') 
+                : (isPrint ? 'bg-emerald-100 text-black border border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20')
+            }`}>
+              {msg.text}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+const Presentation = ({ onClose }: { onClose: () => void }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [
+    {
+      title: "Recepcionista IA",
+      subtitle: "La evolución de la atención al cliente en WhatsApp",
+      content: "Automatización inteligente 24/7 para agendar citas y gestionar clientes sin intervención humana.",
+      icon: <Bot className="w-20 h-20 text-emerald-500" />,
+      type: "cover"
+    },
+    {
+      title: "¿El problema?",
+      subtitle: "Estás perdiendo dinero cada vez que no respondes",
+      points: [
+        "60% de los clientes no dejan mensaje si no respondes al instante.",
+        "La gestión manual de citas consume horas de productividad.",
+        "Perder un mensaje es perder una venta."
+      ],
+      icon: <AlertCircle className="w-16 h-16 text-red-500" />
+    },
+    {
+      title: "La Solución",
+      subtitle: "Tu negocio nunca duerme",
+      points: [
+        "Atención inmediata 24/7 en WhatsApp.",
+        "Agendamiento automático en tu calendario.",
+        "Respuestas precisas basadas en tu conocimiento.",
+        "Escalabilidad sin contratar más personal."
+      ],
+      icon: <Zap className="w-16 h-16 text-emerald-500" />
+    },
+    {
+      title: "¿Cómo funciona?",
+      subtitle: "Un flujo perfecto en 4 pasos",
+      points: [
+        "1. El cliente escribe por WhatsApp.",
+        "2. La IA responde y califica la necesidad.",
+        "3. El cliente elige un horario disponible.",
+        "4. La cita se agenda y tú recibes la notificación."
+      ],
+      icon: <Layout className="w-16 h-16 text-blue-500" />
+    },
+    {
+      title: "Caso Real de Uso",
+      subtitle: "Mira a tu Recepcionista IA en acción",
+      type: "mockup",
+      messages: [
+        { role: "user", text: "Hola, me gustaría información sobre sus servicios." },
+        { role: "bot", text: "¡Hola! Bienvenido a [AQUÍ PUEDE IR EL NOMBRE DE TU NEGOCIO]. 🌟 Soy tu asistente virtual y estoy aquí para que tu experiencia sea impecable desde el primer segundo.\n\nOfrecemos servicios de alta gama diseñados para que te sientas y te veas mejor que nunca. Para darte una atención personalizada, ¿podrías decirme tu nombre y qué servicio te interesa?\n\nSi ya estás listo para transformar tu día, puedes agendar tu cita directamente aquí." },
+        { role: "user", text: "Soy Carlos, quiero una cita para una limpieza dental mañana a las 10:00 AM." },
+        { role: "bot", text: "¡Mucho gusto, Carlos! Déjame revisar... 🔍\n\nPara mañana a las 10:00 AM ya tenemos la agenda llena, pero no te preocupes, ¡queremos verte! Tengo estos horarios disponibles para ti:\n\n✅ 11:30 AM\n✅ 03:00 PM\n✅ 04:30 PM\n\n¿Cuál de estos te queda mejor?" },
+        { role: "user", text: "A las 3:00 PM está perfecto." },
+        { role: "bot", text: "¡Excelente elección, Carlos! 🙌 Tu cita para Limpieza Dental ha sido confirmada para mañana a las 03:00 PM.\n\nTe hemos enviado un recordatorio a tu calendario. ¡Nos vemos pronto!" }
+      ]
+    },
+    {
+      title: "Planes de Inversión",
+      subtitle: "Escala según tus necesidades",
+      content: "Desde el Plan Inicial para profesionales hasta el Sistema de Automatización Completa para empresas de alto volumen.",
+      icon: <TrendingUp className="w-16 h-16 text-emerald-500" />
+    },
+    {
+      title: "¿Listo para empezar?",
+      subtitle: "Transforma tu WhatsApp hoy mismo",
+      content: "Solicita tu diagnóstico gratuito y descubre cuánto tiempo y dinero puedes ahorrar con IA.",
+      icon: <CheckCircle2 className="w-20 h-20 text-emerald-500" />,
+      type: "cta"
+    }
+  ];
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-zinc-950 flex flex-col overflow-hidden print:bg-white print:text-black print:overflow-visible">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page { size: landscape; margin: 0; }
+          body { overflow: visible !important; }
+          .no-print { display: none !important; }
+          .page-break { page-break-after: always; }
+        }
+      `}} />
+      
+      {/* Header Controls */}
+      <div className="flex items-center justify-between p-6 border-b border-white/5 bg-black/50 backdrop-blur-md print:hidden">
+        <div className="flex items-center gap-3">
+          <Bot className="text-emerald-500 w-6 h-6" />
+          <span className="font-bold text-white">Presentación Comercial</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={handlePrint}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-black rounded-xl text-sm font-bold transition-all hover:bg-emerald-400"
+          >
+            Descargar PDF
+          </button>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-white/10 rounded-full transition-all"
+          >
+            <XCircle className="w-6 h-6 text-zinc-500" />
+          </button>
+        </div>
+      </div>
+
+      {/* Screen View */}
+      <div className="flex-grow flex items-center justify-center p-4 sm:p-12 relative overflow-hidden print:hidden">
+        <motion.div 
+          key={currentSlide}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          className="max-w-4xl w-full glass-card p-12 sm:p-20 rounded-[3rem] border-white/5"
+        >
+          <SlideContent slide={slides[currentSlide]} />
+          
+          <div className="mt-8 text-center text-zinc-600 text-sm font-mono">
+            Slide {currentSlide + 1} de {slides.length}
+          </div>
+        </motion.div>
+
+        {/* Navigation Buttons */}
+        <div className="absolute inset-x-0 bottom-12 flex justify-center gap-4">
+          <button 
+            onClick={prevSlide}
+            className="p-4 bg-zinc-900 border border-white/5 rounded-full hover:bg-zinc-800 transition-all"
+          >
+            <ArrowRight className="w-6 h-6 text-white rotate-180" />
+          </button>
+          <button 
+            onClick={nextSlide}
+            className="p-4 bg-emerald-500 rounded-full hover:bg-emerald-400 transition-all"
+          >
+            <ArrowRight className="w-6 h-6 text-black" />
+          </button>
+        </div>
+      </div>
+
+      {/* Print View (Only visible during print) */}
+      <div className="hidden print:block">
+        {slides.map((slide, i) => (
+          <div key={i} className="page-break">
+            <SlideContent slide={slide} isPrint={true} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 // --- Components ---
 
-const Navbar = () => (
+const Navbar = ({ onOpenPresentation }: { onOpenPresentation: () => void }) => (
   <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 backdrop-blur-xl bg-black/20">
     <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
       <div className="flex items-center gap-2.5 group cursor-pointer">
@@ -53,6 +265,14 @@ const Navbar = () => (
             <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-emerald-500 transition-all group-hover:w-full" />
           </a>
         ))}
+        <button 
+          onClick={onOpenPresentation}
+          className="text-xs font-bold uppercase tracking-widest text-emerald-500 hover:text-emerald-400 transition-colors relative group flex items-center gap-2"
+        >
+          Presentación
+          <Sparkles className="w-3 h-3" />
+          <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-emerald-500 transition-all group-hover:w-full" />
+        </button>
       </nav>
 
       <div className="flex items-center gap-6">
@@ -101,9 +321,12 @@ const Marquee = () => {
 };
 
 export default function DesignV3() {
+  const [showPresentation, setShowPresentation] = useState(false);
+
   return (
     <div className="min-h-screen bg-black text-zinc-300 font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
-      <Navbar />
+      {showPresentation && <Presentation onClose={() => setShowPresentation(false)} />}
+      <Navbar onOpenPresentation={() => setShowPresentation(true)} />
       
       <main>
         {/* Hero Section: Centered Layout */}
@@ -137,13 +360,23 @@ export default function DesignV3() {
               </p>
               
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 pt-6 px-4 sm:px-0">
-                <button className="w-full sm:w-auto bg-white text-black px-8 sm:px-12 py-4 sm:py-6 rounded-2xl font-bold text-lg sm:text-xl hover:bg-zinc-200 transition-all shadow-2xl shadow-white/10 flex items-center justify-center gap-3 group">
+                <a 
+                  href={getWhatsAppLink("¡Hola! Quiero empezar ahora con la Recepcionista IA.")}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full sm:w-auto bg-white text-black px-8 sm:px-12 py-4 sm:py-6 rounded-2xl font-bold text-lg sm:text-xl hover:bg-zinc-200 transition-all shadow-2xl shadow-white/10 flex items-center justify-center gap-3 group"
+                >
                   Empezar ahora
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <button className="w-full sm:w-auto bg-zinc-900 text-white border border-white/10 px-8 sm:px-12 py-4 sm:py-6 rounded-2xl font-bold text-lg sm:text-xl hover:bg-zinc-800 transition-all">
+                </a>
+                <a 
+                  href={getWhatsAppLink("¡Hola! Me gustaría ver una demo de la Recepcionista IA.")}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full sm:w-auto bg-zinc-900 text-white border border-white/10 px-8 sm:px-12 py-4 sm:py-6 rounded-2xl font-bold text-lg sm:text-xl hover:bg-zinc-800 transition-all flex items-center justify-center"
+                >
                   Ver Demo
-                </button>
+                </a>
               </div>
 
               <div className="flex flex-col items-center gap-6 pt-12 border-t border-white/5">
@@ -435,7 +668,7 @@ export default function DesignV3() {
                   <div className="space-y-2">
                     <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-widest">Implementación Única</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-6xl font-display font-bold text-white">$150</span>
+                      <span className="text-6xl font-display font-bold text-white">$250</span>
                       <span className="text-zinc-500 text-sm">pago único</span>
                     </div>
                   </div>
@@ -470,9 +703,14 @@ export default function DesignV3() {
                 </div>
 
                 <div className="pt-10 space-y-4">
-                  <button className="w-full bg-emerald-500 hover:bg-emerald-400 text-black py-5 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-emerald-500/20 hover:-translate-y-1 active:scale-95">
+                  <a 
+                    href={getWhatsAppLink("¡Hola! Quiero reservar uno de los 10 cupos para el Plan Inicial de la Recepcionista IA.")}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full bg-emerald-500 hover:bg-emerald-400 text-black py-5 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-emerald-500/20 hover:-translate-y-1 active:scale-95 flex items-center justify-center"
+                  >
                     Reservar Cupo (Solo 10)
-                  </button>
+                  </a>
                   <p className="text-center text-zinc-500 text-[10px] font-medium uppercase tracking-widest">⚡ Activación en 24-48 horas</p>
                 </div>
               </div>
@@ -531,9 +769,14 @@ export default function DesignV3() {
                 </div>
 
                 <div className="pt-10">
-                  <button className="w-full bg-zinc-900 hover:bg-zinc-800 text-white border border-white/10 py-5 rounded-2xl font-bold text-lg transition-all group-hover:border-emerald-500/30 shadow-xl shadow-black/20">
+                  <a 
+                    href={getWhatsAppLink("¡Hola! Me gustaría solicitar un diagnóstico de automatización para mi negocio.")}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full bg-zinc-900 hover:bg-zinc-800 text-white border border-white/10 py-5 rounded-2xl font-bold text-lg transition-all group-hover:border-emerald-500/30 shadow-xl shadow-black/20 flex items-center justify-center"
+                  >
                     Solicitar diagnóstico de automatización
-                  </button>
+                  </a>
                   <p className="text-center text-zinc-600 text-[10px] mt-4 uppercase tracking-widest">Análisis de procesos incluido</p>
                 </div>
               </div>
@@ -583,9 +826,14 @@ export default function DesignV3() {
             <p className="text-zinc-400 text-xl max-w-2xl mx-auto leading-relaxed">
               Únete a los negocios que ya están escalando su atención al cliente con Recepcionista IA.
             </p>
-            <button className="bg-emerald-500 hover:bg-emerald-400 text-black px-12 py-6 rounded-2xl text-xl font-bold transition-all hover:scale-105 shadow-2xl shadow-emerald-500/20">
+            <a 
+              href={getWhatsAppLink("¡Hola! Quiero solicitar mi demo gratuita de la Recepcionista IA.")}
+              target="_blank"
+              rel="noreferrer"
+              className="bg-emerald-500 hover:bg-emerald-400 text-black px-12 py-6 rounded-2xl text-xl font-bold transition-all hover:scale-105 shadow-2xl shadow-emerald-500/20 inline-block"
+            >
               Solicitar Demo Gratuita
-            </button>
+            </a>
           </div>
         </section>
       </main>
