@@ -26,6 +26,7 @@ import { useState, useEffect, useRef } from "react";
 
 // --- Constants ---
 const WHATSAPP_NUMBER = "593963803030"; // WhatsApp del usuario (Ecuador)
+const DEMO_URL = "https://id-preview--0d55e48a-f1f4-428f-a14a-34edef8d4d6b.lovable.app/?__lovable_token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiRFFTekNRaXcwZ1BoNnIzbkdudzhyZFpuVTJKMiIsInByb2plY3RfaWQiOiIwZDU1ZTQ4YS1mMWY0LTQyOGYtYTE0YS0zNGVkZWY4ZDRkNmIiLCJhY2Nlc3NfdHlwZSI6InByb2plY3QiLCJpc3MiOiJsb3ZhYmxlLWFwaSIsInN1YiI6IjBkNTVlNDhhLWYxZjQtNDI4Zi1hMTRhLTM0ZWRlZjhkNGQ2YiIsImF1ZCI6WyJsb3ZhYmxlLWFwcCJdLCJleHAiOjE3NzM4MjUyMDUsIm5iZiI6MTc3MzIyMDQwNSwiaWF0IjoxNzczMjIwNDA1fQ.T2fdLfo1cjTqf9mrOVj_BwJcVZ4OQE3O2xPum18qLdukXVV4hhaeswkFs6tm2DINDiPcGkkdO9wEsoD23VQM8f_2QW0XmjNMNTyp-tznomPcFgxvSn5QTnkNR0sWjHQUJO_M5iYY9Px-qe3niFctxQvEeQlzqgIn8MidL8rsngHJK0uLH_RjsJLSbr1ikI3FFs4E0sUgX9pxsFnUzHEpCJZclaY2bj-wDOe4Bq2S6FrS6G3YKH_qxUdu91TJRP9kDzzjb3r1-wGNjFgY7x484CIR_ShdU45LYf3O6jKqnIhJA7fPL7S2cc5ST52jc3GBSGvpuSw_VW3y923-7UfacO7FsqaM81188HtLXa2XLos3SNahJXR55bMyyiZsQkKTeNFYo0er5qmYEZ_dKU0arpyRPbxLLDIpLnWqHVTW6mcODsmS2sSb3RONf4YQAPOBNrRPujDxQQFiXbJY2aY0xW7-SkpOxlHXBatqIbGqstQ0TKH6T1tVi_t1Zdo94IeGG7PcCHwJKt8dp6uWYJGSH9SWqnQxekDr-AxTFHBpZpiVs58V27HlFu5H856J9hhlZh16qmzvbO5Z2C674axpGvxM7PLS0Cc2cRyheCfgourDZMr8wt0JBvtSmAXCnvD2xjmBARHrcs65_zb1EKc1rNejNQlY_81-wMOj-f-ty90";
 
 const getWhatsAppLink = (message: string) => {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
@@ -370,7 +371,7 @@ export default function DesignV3() {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </a>
                 <a 
-                  href={getWhatsAppLink("¡Hola! Me gustaría ver una demo de la Recepcionista IA.")}
+                  href={DEMO_URL}
                   target="_blank"
                   rel="noreferrer"
                   className="w-full sm:w-auto bg-zinc-900 text-white border border-white/10 px-8 sm:px-12 py-4 sm:py-6 rounded-2xl font-bold text-lg sm:text-xl hover:bg-zinc-800 transition-all flex items-center justify-center"
@@ -827,7 +828,7 @@ export default function DesignV3() {
               Únete a los negocios que ya están escalando su atención al cliente con Recepcionista IA.
             </p>
             <a 
-              href={getWhatsAppLink("¡Hola! Quiero solicitar mi demo gratuita de la Recepcionista IA.")}
+              href={DEMO_URL}
               target="_blank"
               rel="noreferrer"
               className="bg-emerald-500 hover:bg-emerald-400 text-black px-12 py-6 rounded-2xl text-xl font-bold transition-all hover:scale-105 shadow-2xl shadow-emerald-500/20 inline-block"
